@@ -10,7 +10,7 @@ class Player
 end
 
 class Human < Player
-  def human_choose
+  def choose
     self.choice = ""
     while !Game::CHOICES.keys.include?(self.choice) do
       puts "Please enter 'P', 'R' or 'S' to choose between paper, rock and scissors."
@@ -20,7 +20,7 @@ class Human < Player
 end
 
 class Computer < Player
-  def computer_choose
+  def choose
     self.choice = Game::CHOICES.keys.sample
   end
 end
@@ -43,16 +43,16 @@ class Game
     if human.choice == computer.choice
       puts "It's a tie."
     elsif (human.choice == "P" && computer.choice == "R") || (human.choice == "R" && computer.choice == "S") || (human.choice == "S" && computer.choice == "P")
-      puts "The computer won!"
-    elsif (human.choice == "P" && computer.choice == "S") || (human.choice == "R" && computer.choice == "P") || (human.choice == "S" && computer.choice == "R")
       puts "You won!"
+    elsif (human.choice == "P" && computer.choice == "S") || (human.choice == "R" && computer.choice == "P") || (human.choice == "S" && computer.choice == "R")
+      puts "The computer won!"
     end
 
   end
 
   def play
-    human.human_choose
-    computer.computer_choose
+    human.choose
+    computer.choose
     notify
     compare_choices
   end

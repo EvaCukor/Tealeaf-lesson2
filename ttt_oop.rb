@@ -10,6 +10,7 @@ class Grid
   end
 
   def draw
+    system "clear"
     puts "     |     |     "
     puts "  #{@grid[1]}  |  #{@grid[2]}  |  #{@grid[3]}  "
     puts "     |     |     "
