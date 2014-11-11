@@ -38,10 +38,12 @@ end
 
 class Hand
 
-  attr_accessor :name, :hand
+  attr_accessor :owner, :hand
 
-  def initialize(name)
-    @name = name
+  BLACKJACK = 21
+
+  def initialize(owner)
+    @owner = owner
     @hand = []
   end
 
@@ -70,32 +72,47 @@ class Hand
   end
 
   def show_hand
-    puts "\n#{name}'s cards are:\n" 
+    puts "\n#{owner}'s cards are:\n" 
     hand.each do |card|
       puts card.suit + "-" + card.value
     end 
     puts "Their total value is: " + sum.to_s
   end
 
+  def blackjack_win_bust
+    if self.sum == BLACKJACK
+      puts "\n#{owner} has hit blackjack!"
+      exit
+    elsif self.sum > BLACKJACK
+      puts "\n#{owner} has lost."
+      exit
+    end
+  end
+
+  def deal_sequence(deck)
+    self.add_card(deck.deal)
+    self.show_hand
+    sleep(1)
+    self.blackjack_win_bust
+  end
+
 end
 
 class Game
+
+  attr_accessor :player_hand, :dealer_hand, :deck
 
   BLACKJACK = 21
   DEALER_HIT_MIN = 17
   CHOICES = ["H", "S"]
 
-  def blackjack_win_bust(name, total)
-    if total == BLACKJACK
-      puts "\n#{name} has hit blackjack!"
-      exit
-    elsif total > BLACKJACK
-      puts "\n#{name} has lost."
-      exit
-    end
+  def initialize(player_name)
+    @player_hand = Hand.new(player_name)
+    @dealer_hand = Hand.new("Dealer")
+    @deck = Deck.new
   end
 
-  def initial_deal(player_hand, dealer_hand, deck)
+  def initial_deal
     sleep(1)
 
     for i in 1..2 do
@@ -106,27 +123,20 @@ class Game
     player_hand.show_hand
     dealer_hand.show_hand
 
-    blackjack_win_bust(player_hand.name, player_hand.sum)
+    player_hand.blackjack_win_bust
   end
 
-  def deal_sequence(hand, deck)
-    hand.add_card(deck.deal)
-    hand.show_hand
-    sleep(1)
-    blackjack_win_bust(hand.name, hand.sum)
-  end
-
-  def compare_hands(hand1, hand2)
-    puts "\nThe total value of #{hand1.name}'s cards is #{hand1.sum} and the total value of #{hand2.name}'s cards is #{hand2.sum}."
-    if hand1.sum > hand2.sum
-      puts "\n#{hand1.name} has won!"
-    elsif hand1.sum < hand2.sum
-      puts "\n#{hand2.name} has won!"
+  def compare_hands
+    puts "\nThe total value of #{player_hand.owner}'s cards is #{player_hand.sum} and the total value of #{dealer_hand.owner}'s cards is #{dealer_hand.sum}."
+    if player_hand.sum > dealer_hand.sum
+      puts "\n#{player_hand.owner} has won!"
+    elsif player_hand.sum < dealer_hand.sum
+      puts "\n#{dealer_hand.owner} has won!"
     end      
   end
 
-  def player_turn(hand, deck)
-    while hand.sum < BLACKJACK
+  def player_turn
+    while player_hand.sum < BLACKJACK
       puts "\nWould you like to hit (H) or stay (S)?"
       hit_or_stay = gets.chomp.upcase
 
@@ -144,31 +154,31 @@ class Game
         sleep(1)
       end
 
-      deal_sequence(hand, deck)
+      player_hand.deal_sequence(@deck)
     end
   end
 
-  def dealer_turn(hand, deck)
-    blackjack_win_bust(hand.name, hand.sum)
+  def dealer_turn
+    dealer_hand.blackjack_win_bust
 
-    puts "\n#{hand.name} will deal to herself now.\n\n"
+    puts "\n#{dealer_hand.owner} will deal to herself now.\n\n"
 
     sleep(1)
 
-    while hand.sum < DEALER_HIT_MIN
-      deal_sequence(hand, deck)
+    while dealer_hand.sum < DEALER_HIT_MIN
+      dealer_hand.deal_sequence(@deck)
       sleep(1)
     end
 
-    while hand.sum >= DEALER_HIT_MIN && hand.sum < BLACKJACK do
+    while dealer_hand.sum >= DEALER_HIT_MIN && dealer_hand.sum < BLACKJACK do
       dealer_choice = CHOICES.sample
       if dealer_choice == "H"
-        puts "\n#{hand.name} has decided to hit.\n\n"
+        puts "\n#{dealer_hand.owner} has decided to hit.\n\n"
         sleep(1)
-        deal_sequence(hand, deck)
+        dealer_hand.deal_sequence(@deck)
         sleep(1)
       elsif dealer_choice == "S"
-        puts "\n#{hand.name} has decided to stay."
+        puts "\n#{dealer_hand.owner} has decided to stay."
         sleep(1)
         break
       end
@@ -176,22 +186,16 @@ class Game
   end
 
   def play
-    puts "\nWelcome to the Blackjack game! What is your name?"
-    player_name = gets.chomp.capitalize
-    deck = Deck.new
-    dealer_hand = Hand.new("Dealer")
-    player_hand = Hand.new(player_name)
-    puts "\nHi, #{player_name}! The dealer will start the game now.\n\n\n"
-
-    initial_deal(player_hand, dealer_hand, deck)
-
-    player_turn(player_hand, deck)
-
-    dealer_turn(dealer_hand, deck)
-
-    compare_hands(dealer_hand, player_hand)
+    initial_deal
+    player_turn
+    dealer_turn
+    compare_hands
   end
 
 end
 
-blackjack = Game.new.play
+puts "\nWelcome to the Blackjack game! What is your name?"
+player_name = gets.chomp.capitalize
+blackjack = Game.new(player_name)
+puts "\nHi, #{player_name}! The dealer will start the game now.\n\n\n"
+blackjack.play
